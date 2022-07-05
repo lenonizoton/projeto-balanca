@@ -46,9 +46,10 @@ void Set_Tare(){
 
 void Calibration(){
   int i = 1;
+  lcd.clear();
   while(true){
     if (hx711.read()<x0+1000){
-      lcd.clear();
+      lcd.setCursor(0,0);
       lcd.print("Add a known Mass");
       lcd.setCursor(0,1);
       lcd.print("...");
@@ -56,9 +57,10 @@ void Calibration(){
     } else {
       i++;
       delay(2000);
+      lcd.clear();
       for (int j=0;j<int(avg_size);j++){
         x1+=hx711.read();
-        lcd.clear();
+        lcd.setCursor(0,0);
         lcd.print("Calibrating ***");
       }
       x1/=long(avg_size); 
@@ -72,10 +74,10 @@ void Calibration(){
 
 float mass(long X0, long X1, float Y1){
   long reading = 0;
-    for (int jj=0;jj<8;jj++){
+    for (int jj=0;jj<12;jj++){
       reading+=hx711.read();
     }
-  reading/=8; // averaging reading
+  reading/=12; // averaging reading
   // calculating mass based on calibration and linear fit
   float ratio_1 = (float) (reading-x0);
   float ratio_2 = (float) (x1-x0);
@@ -87,21 +89,21 @@ float mass(long X0, long X1, float Y1){
 void PrintMass(){
   int i = 1;
   float weight = 0.0;
-  float weightLess = 50;
-  float weightPlus = 50;
+  float weightlast = 0.0; 
+  lcd.clear();
   while (true) {
-    weight = hx711.read();
-    if ( (weight>(hx711.read()-weightLess)) && (weight<(hx711.read()+weightPlus)) ) {
+    weight = mass(x0,x1,y1);
+    if ( (weight>(weightlast-0.0100)) && (weight<(weightlast+0.0100)) ) {
      // waits until mass is changed
     } else {
-      weight = mass(x0,x1,y1);
-      if (weight <= 0.015) {
+      if (weight<=0.000){
         weight = 0.000;
       }
-       lcd.clear();
+       lcd.setCursor(0,0);
        lcd.print(weight,3);
        lcd.print(" kg");
-       i++;
+       weightlast = weight;
+       i++;  
     }
   }
 }
